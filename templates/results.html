@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Résultat{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 50px 20px;">
+    <div style="font-size: 4rem; margin-bottom: 16px; animation: float 3s ease-in-out infinite;">🎉</div>
+    <h2 style="font-size: 1.8rem; margin-bottom: 8px;">Quiz Soumis !</h2>
+    <p style="margin-bottom: 32px; font-size: 1rem;">Merci, <strong style="color: var(--text-bright);">{{ student_name }}</strong>.</p>
+
+    {% set percentage = (score / total * 100) if total > 0 else 0 %}
+    {% set is_passed = percentage >= 50 %}
+
+    <div style="display: inline-block; background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); padding: 32px 48px; margin-bottom: 32px;">
+        <div style="font-size: 3.5rem; font-weight: 800; background: {{ 'var(--success-gradient)' if is_passed else 'linear-gradient(135deg, var(--danger-color), #f97316)' }}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;">
+            {{ score }} / {{ total }}
+        </div>
+        <div>
+            {% if is_passed %}
+            <span class="badge badge-success" style="font-size: 1rem; padding: 8px 20px;">✓ Réussi</span>
+            {% else %}
+            <span class="badge badge-danger" style="font-size: 1rem; padding: 8px 20px;">✗ Échoué</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <p style="margin-bottom: 24px; font-size: 0.95rem;">Vous pouvez maintenant fermer cette fenêtre ou retourner à l'accueil.</p>
+    <a href="{{ url_for('main.student_login') }}" class="btn">← Retour à l'Accueil</a>
+</div>
+{% endblock %}

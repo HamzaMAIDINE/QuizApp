@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Gestion du Compte{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <h2 style="margin-bottom: 8px;">Gestion du Compte</h2>
+    </div>
+
+    <!-- Account Info -->
+    <div class="card" style="margin-bottom: 24px;">
+        <h3 style="color: var(--accent-purple); margin-bottom: 16px; font-size: 1.1rem;">👤 Informations du Compte</h3>
+        <p style="color: var(--text-primary);">
+            <strong>Nom d'utilisateur:</strong>
+            <span style="margin-left: 8px; background: var(--glass-bg); padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid var(--card-border);">{{ teacher.username }}</span>
+        </p>
+
+        <div style="margin-top: 24px; border-top: 1px solid var(--card-border); padding-top: 20px;">
+            <h4 style="color: var(--warning-color); margin-bottom: 12px; font-size: 0.95rem;">🔑 Code de Récupération</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 16px;">
+                Le code de récupération est le <strong>seul moyen</strong> de réinitialiser votre mot de passe si vous l'oubliez.
+            </p>
+
+            {% if new_recovery_code %}
+            <div style="background: var(--warning-bg); border: 1px solid rgba(245, 158, 11, 0.3); padding: 20px; border-radius: var(--radius-md); text-align: center; margin-bottom: 16px;">
+                <p style="color: var(--warning-color); font-weight: 600; margin-bottom: 10px; font-size: 0.9rem;">Nouveau Code Généré :</p>
+                <div style="font-family: 'Courier New', monospace; font-size: 1.3rem; letter-spacing: 2px; background: rgba(255,255,255,0.08); padding: 12px; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); display: inline-block; color: var(--text-bright); user-select: all;">
+                    {{ new_recovery_code }}
+                </div>
+                <p style="color: var(--warning-color); font-size: 0.8rem; margin-top: 10px;">⚠️ Notez ce code maintenant. Il ne sera plus affiché.</p>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('main.regenerate_recovery') }}" onsubmit="return confirm('Attention: Cela invalidera votre ancien code. Êtes-vous sûr ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245,158,11,0.3);">
+                    {% if new_recovery_code %}Générer un autre code{% else %}Générer un code de récupération{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card">
+        <h3 style="color: var(--accent-purple); margin-bottom: 20px; font-size: 1.1rem;">🔒 Changer le Mot de Passe</h3>
+        <form method="POST" action="{{ url_for('main.change_password') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-group">
+                <label for="current_password">Mot de passe actuel</label>
+                <input type="password" name="current_password" id="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">Nouveau mot de passe</label>
+                <input type="password" name="new_password" id="new_password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                <input type="password" name="confirm_password" id="confirm_password" required>
+            </div>
+            <button type="submit" class="btn" style="margin-top: 8px;">Mettre à jour</button>
+        </form>
+    </div>
+
+    <div style="text-align: center; margin-top: 28px;">
+        <a href="{{ url_for('main.dashboard') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">← Retour au Tableau de Bord</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — 404{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 6rem; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; line-height: 1;">
+        404
+    </div>
+    <h2 style="font-size: 1.5rem; margin-bottom: 12px;">Page Introuvable</h2>
+    <p style="max-width: 400px; margin: 0 auto 32px auto; font-size: 1rem;">
+        La page que vous recherchez semble avoir disparu ou n'a jamais existé.
+    </p>
+    <a href="{{ url_for('main.landing') }}" class="btn">← Retour à l'Accueil</a>
+</div>
+{% endblock %}

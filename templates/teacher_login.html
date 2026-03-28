@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Accès Enseignant{% endblock %}
+
+{% block content %}
+<div style="max-width: 420px; margin: 0 auto; padding: 20px 0; text-align: center;">
+    <div style="margin-bottom: 32px;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">🔐</div>
+        <h2 style="margin-bottom: 8px;">Accès Enseignant</h2>
+        <p style="font-size: 0.95rem;">Entrez votre mot de passe pour accéder au tableau de bord.</p>
+    </div>
+
+    <form method="POST" style="background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label for="password" style="text-align: left;">Mot de Passe</label>
+            <input type="password" name="password" id="password" required placeholder="Entrez le mot de passe"
+                style="text-align: center; font-size: 1.05rem; padding: 14px 20px; letter-spacing: 1px;">
+        </div>
+
+        <button type="submit" class="btn btn-block" style="font-size: 1rem;">
+            Connexion
+        </button>
+
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('main.reset_password') }}" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; transition: var(--transition-base);"
+               onmouseover="this.style.color='var(--accent-purple)'" onmouseout="this.style.color='var(--text-muted)'">
+                Mot de passe oublié ?
+            </a>
+        </div>
+    </form>
+
+    <div style="margin-top: 28px;">
+        <a href="{{ url_for('main.landing') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: var(--transition-base);"
+           onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+            ← Retour à l'Accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

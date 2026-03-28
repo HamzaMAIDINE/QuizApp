@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Tableau de Bord{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+    <h2 style="margin-bottom: 0;">Tableau de Bord</h2>
+</div>
+
+<div style="display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; align-items: center;">
+    <a href="{{ url_for('main.create_quiz') }}" class="btn btn-success" style="font-size: 0.9rem;">+ Nouveau Quiz</a>
+
+    <form action="{{ url_for('main.import_quiz') }}" method="POST" enctype="multipart/form-data"
+        style="display: inline-flex; align-items: center; gap: 10px; background: var(--glass-bg); border: 1px solid var(--card-border); padding: 6px 8px 6px 16px; border-radius: var(--radius-full);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="file" name="file" id="importFile" accept=".json" required style="display: none;"
+            onchange="document.getElementById('fileLabel').textContent = this.files[0] ? this.files[0].name : 'Choisir un fichier'">
+        <label for="importFile" id="fileLabel" style="
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: var(--radius-full);
+            background: rgba(255,255,255,0.06); border: 1px dashed var(--glass-border);
+            color: var(--text-secondary); font-size: 0.85rem; cursor: pointer;
+            transition: var(--transition-base); white-space: nowrap;
+        " onmouseover="this.style.borderColor='var(--accent-purple)';this.style.color='var(--text-primary)'"
+           onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-secondary)'">
+            📂 Choisir un fichier
+        </label>
+        <button type="submit" class="btn btn-blue btn-sm">Importer</button>
+    </form>
+
+    <a href="{{ url_for('main.view_results') }}" class="btn" style="font-size: 0.9rem;">📊 Résultats</a>
+</div>
+
+<div class="quiz-list" style="margin-bottom: 40px;">
+    {% for quiz in quizzes.items %}
+    <div class="quiz-item {% if quiz.is_active %}active{% endif %}">
+        <div style="flex: 1;">
+            <h3>{{ quiz.title }}</h3>
+            <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.9rem;">
+                ⏱ {{ quiz.time_limit_minutes }} min  ·  📝 {{ quiz.questions|length }} questions
+            </p>
+            {% if quiz.is_active %}
+            <span class="badge badge-active" style="margin-top: 8px; display: inline-flex;">● ACTIF</span>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+            <form action="{{ url_for('main.toggle_active', quiz_id=quiz.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% if quiz.is_active %}
+                <button type="submit" class="btn btn-secondary btn-sm">Désactiver</button>
+                {% else %}
+                <button type="submit" class="btn btn-sm">Activer</button>
+                {% endif %}
+            </form>
+            <a href="{{ url_for('main.add_question', quiz_id=quiz.id) }}" class="btn btn-secondary btn-sm">Éditer</a>
+            <a href="{{ url_for('main.export_quiz', quiz_id=quiz.id) }}" class="btn btn-secondary btn-sm">Exporter</a>
+            <a href="{{ url_for('main.download_results', quiz_id=quiz.id) }}" class="btn btn-secondary btn-sm">📥 CSV</a>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="openDeleteModal('{{ quiz.id }}')"
+                style="background: var(--danger-bg); color: var(--danger-color); border-color: rgba(239,68,68,0.2);">
+                Supprimer
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px 20px; background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg);">
+        <div style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;">📋</div>
+        <p style="color: var(--text-muted); font-size: 1rem;">Aucun quiz trouvé.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Créez votre premier quiz pour commencer !</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if quizzes.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-bottom: 40px; gap: 8px;">
+    {% for page_num in quizzes.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if quizzes.page == page_num %}
+                <span class="btn btn-sm" style="opacity: 0.7; cursor: default;">{{ page_num }}</span>
+            {% else %}
+                <a href="{{ url_for('main.dashboard', page=page_num) }}" class="btn btn-secondary btn-sm">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            <span style="padding: 8px; color: var(--text-muted);">…</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>⚠️ Confirmer la Suppression</h3>
+        <p style="margin-top: 8px;">Êtes-vous sûr de vouloir supprimer ce quiz ? Cette action archivera le quiz et ses résultats.</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Annuler</button>
+            <form id="deleteForm" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn" style="background: var(--danger-color); box-shadow: 0 4px 15px rgba(239,68,68,0.3);">
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal(quizId) {
+        document.getElementById('deleteForm').action = "/delete_quiz/" + quizId;
+        modalFloatEngine.open(document.getElementById('deleteModal'));
+    }
+
+    function closeDeleteModal() {
+        modalFloatEngine.close(document.getElementById('deleteModal'));
+    }
+
+    window.onclick = function (event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target == modal) closeDeleteModal();
+    }
+</script>
+{% endblock %}

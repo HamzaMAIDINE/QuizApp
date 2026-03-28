@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Nouveau Quiz{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; padding: 20px 0;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">📝</div>
+        <h2 style="margin-bottom: 8px;">Nouveau Quiz</h2>
+        <p style="font-size: 0.95rem;">Définissez le titre et la durée de votre quiz.</p>
+    </div>
+
+    <form method="POST" style="background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="form-group">
+            <label>Titre du Quiz</label>
+            <input type="text" name="title" required placeholder="Ex: Examen Final de Mathématiques">
+        </div>
+
+        <div class="form-group">
+            <label>Limite de Temps (minutes)</label>
+            <input type="number" name="time_limit" required value="10" min="1">
+        </div>
+
+        <button type="submit" class="btn btn-block">
+            Suivant : Ajouter des Questions →
+        </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 24px;">
+        <a href="{{ url_for('main.dashboard') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">
+            ← Retour au Tableau de Bord
+        </a>
+    </div>
+</div>
+{% endblock %}

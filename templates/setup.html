@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Configuration{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; padding: 20px 0;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">⚙️</div>
+        <h2 style="margin-bottom: 8px;">Configuration Initiale</h2>
+        <p style="font-size: 0.95rem;">Bienvenue sur QuizApp ! Créez votre compte administrateur.</p>
+    </div>
+
+    {% if recovery_code %}
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 28px; border-radius: var(--radius-lg); text-align: center;">
+        <h3 style="color: var(--warning-color); margin-bottom: 16px; font-size: 1.1rem;">⚠️ Code de Récupération</h3>
+        <p style="margin-bottom: 16px; font-size: 0.9rem;">Voici votre code unique pour réinitialiser votre mot de passe si vous l'oubliez.</p>
+        <div style="font-family: 'Courier New', monospace; font-size: 1.3rem; letter-spacing: 2px; background: rgba(255,255,255,0.08); padding: 14px 20px; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); display: inline-block; user-select: all; color: var(--text-bright);">
+            {{ recovery_code }}
+        </div>
+        <p style="color: var(--warning-color); font-size: 0.85rem; margin-top: 16px;">
+            Copiez ce code et conservez-le en lieu sûr. Il ne sera plus affiché.
+        </p>
+
+        <div style="margin-top: 24px;">
+            <a href="{{ url_for('main.teacher_login') }}" class="btn">Continuer vers la Connexion →</a>
+        </div>
+    </div>
+    {% else %}
+    <form method="POST" style="background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" name="username" id="username" required placeholder="Ex: admin" value="admin">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" name="password" id="password" required placeholder="Choisissez un mot de passe fort">
+        </div>
+
+        <div class="form-group">
+            <label for="confirm_password">Confirmer le mot de passe</label>
+            <input type="password" name="confirm_password" id="confirm_password" required placeholder="Répétez le mot de passe">
+        </div>
+
+        <button type="submit" class="btn btn-block" style="margin-top: 8px;">
+            Créer le Compte Administrateur
+        </button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

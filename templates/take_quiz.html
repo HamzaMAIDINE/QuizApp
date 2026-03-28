@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 0;">{{ quiz.title }}</h2>
+    <div id="timer" style="font-size: 1.3rem;">
+        {{ quiz.time_limit_minutes }}:00
+    </div>
+</div>
+
+<p style="margin-bottom: 24px;">Étudiant : <strong style="color: var(--text-bright);">{{ student.first }} {{ student.last }}</strong>
+    <span class="badge" style="margin-left: 8px; background: var(--glass-bg); border: 1px solid var(--card-border); color: var(--text-secondary);">{{ student.student_class }}</span>
+</p>
+
+<form id="quizForm" action="{{ url_for('main.submit_quiz', quiz_id=quiz.id) }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="student_first" value="{{ student.first }}">
+    <input type="hidden" name="student_last" value="{{ student.last }}">
+    <input type="hidden" name="student_class" value="{{ student.student_class }}">
+
+    {% for question in questions %}
+    <div class="question-step" data-step="{{ loop.index0 }}" style="display: {{ 'block' if loop.first else 'none' }}; animation: fadeSlideUp 0.4s ease-out;">
+        <div class="question-block">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span class="badge" style="background: var(--accent-gradient); color: white; padding: 6px 14px; font-size: 0.85rem;">
+                    Question {{ loop.index }} / {{ questions|length }}
+                </span>
+            </div>
+            <p style="color: var(--text-bright); font-size: 1.05rem; font-weight: 500; line-height: 1.7; margin-bottom: 4px;">
+                {{ question.text | safe }}
+            </p>
+            <div class="options-grid">
+                {% for option in question.options %}
+                <label class="option-label">
+                    <input type="radio" name="q_{{ question.id }}" value="{{ option.id }}" required>
+                    {{ option.text }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Progress bar -->
+    <div style="margin-top: 16px; margin-bottom: 16px; background: rgba(255,255,255,0.05); border-radius: var(--radius-full); height: 6px; overflow: hidden;">
+        <div id="progressBar" style="width: {{ (1 / questions|length * 100) if questions|length > 0 else 0 }}%; height: 100%; background: var(--accent-gradient); border-radius: var(--radius-full); transition: width 0.4s ease;"></div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" id="nextBtn" class="btn btn-blue" onclick="nextQuestion()">Suivant →</button>
+        <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">✓ Soumettre</button>
+    </div>
+</form>
+
+<script>
+    let currentStep = 0;
+    const totalSteps = {{ questions|length }};
+    const steps = document.querySelectorAll('.question-step');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('progressBar');
+
+    let limitMinutes = parseInt("{{ quiz.time_limit_minutes }}", 10);
+    let timeRemaining = limitMinutes * 60;
+    const timerElement = document.getElementById('timer');
+    const form = document.getElementById('quizForm');
+
+    window.onbeforeunload = function () {
+        return "Êtes-vous sûr de vouloir quitter ? Votre progression sera perdue.";
+    };
+
+    form.onsubmit = function () {
+        window.onbeforeunload = null;
+    };
+
+    function nextQuestion() {
+        const currentQuestionBlock = steps[currentStep];
+        const inputs = currentQuestionBlock.querySelectorAll('input[type="radio"]');
+        let answered = false;
+
+        for (let input of inputs) {
+            if (input.checked) { answered = true; break; }
+        }
+
+        if (!answered) {
+            alert("Veuillez sélectionner une réponse avant de continuer.");
+            return;
+        }
+
+        steps[currentStep].style.display = 'none';
+        currentStep++;
+
+        if (currentStep < totalSteps) {
+            steps[currentStep].style.display = 'block';
+            progressBar.style.width = ((currentStep + 1) / totalSteps * 100) + '%';
+
+            if (currentStep === totalSteps - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-flex';
+            }
+        }
+    }
+
+    const countdown = setInterval(() => {
+        let minutes = Math.floor(timeRemaining / 60);
+        let seconds = timeRemaining % 60;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        timerElement.textContent = `${minutes}:${seconds}`;
+
+        if (timeRemaining <= 60) {
+            timerElement.style.color = 'var(--danger-color)';
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(countdown);
+            alert("Le temps est écoulé ! Soumission de vos réponses.");
+            window.onbeforeunload = null;
+            form.submit();
+        }
+        timeRemaining--;
+    }, 1000);
+</script>
+{% endblock %}

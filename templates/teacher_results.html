@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Résultats{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 0;">Résultats des Étudiants</h2>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-sm">← Tableau de Bord</a>
+</div>
+
+<form method="GET"
+    style="margin-bottom: 28px; background: var(--glass-bg); border: 1px solid var(--card-border); padding: 20px 24px; border-radius: var(--radius-lg); display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
+
+    <div style="flex: 1; min-width: 180px;">
+        <label style="font-size: 0.85rem; margin-bottom: 6px;">Filtrer par Quiz</label>
+        <select name="quiz_id">
+            <option value="all">Tous les Quiz</option>
+            {% for quiz in quizzes %}
+            <option value="{{ quiz.id }}" {% if selected_quiz==quiz.id %}selected{% endif %}>{{ quiz.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="flex: 1; min-width: 180px;">
+        <label style="font-size: 0.85rem; margin-bottom: 6px;">Filtrer par Classe</label>
+        <select name="class_filter">
+            <option value="all">Toutes les classes</option>
+            {% for c in classes %}
+            <option value="{{ c }}" {% if selected_class==c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="flex: 1; min-width: 180px;">
+        <label style="font-size: 0.85rem; margin-bottom: 6px;">Trier par</label>
+        <select name="sort_by">
+            <option value="date" {% if current_sort=='date' %}selected{% endif %}>Date (Récent)</option>
+            <option value="name" {% if current_sort=='name' %}selected{% endif %}>Nom (A-Z)</option>
+            <option value="class" {% if current_sort=='class' %}selected{% endif %}>Classe</option>
+            <option value="score" {% if current_sort=='score' %}selected{% endif %}>Note (Décroissant)</option>
+        </select>
+    </div>
+
+    <div style="flex: 1; min-width: 140px;">
+        <label style="font-size: 0.85rem; margin-bottom: 6px;">Lignes par page</label>
+        <select name="per_page">
+            {% for val in [15, 20, 25, 30, 50] %}
+            <option value="{{ val }}" {% if current_per_page == val %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-blue btn-sm" style="height: 42px;">Appliquer</button>
+</form>
+
+<div style="overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--card-border);">
+    <table style="background: var(--glass-bg);">
+        <thead>
+            <tr>
+                <th>Étudiant</th>
+                <th>Classe</th>
+                <th>Quiz</th>
+                <th>Note</th>
+                <th>Statut</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results.items %}
+            {% set percentage = (result.score / result.total_questions) * 100 if result.total_questions > 0 else 0 %}
+            {% set is_passed = percentage >= 50 %}
+            <tr>
+                <td style="color: var(--text-primary); font-weight: 500;">{{ result.first_name }} {{ result.last_name }}</td>
+                <td>{{ result.student_class }}</td>
+                <td>{{ result.title }}</td>
+                <td style="font-weight: 700; color: {{ 'var(--success-color)' if is_passed else 'var(--danger-color)' }};">
+                    {{ result.score }} / {{ result.total_questions }}
+                </td>
+                <td>
+                    {% if is_passed %}
+                    <span class="badge badge-success">Réussi</span>
+                    {% else %}
+                    <span class="badge badge-danger">Échoué</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85rem;">
+                    {{ result.date_taken.strftime('%d/%m/%Y %H:%M') if result.date_taken else '—' }}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    Aucun résultat trouvé pour cette sélection.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if results.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-top: 24px; gap: 8px;">
+    {% for page_num in results.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if results.page == page_num %}
+                <span class="btn btn-sm" style="opacity: 0.7; cursor: default;">{{ page_num }}</span>
+            {% else %}
+                <a href="{{ url_for('main.view_results', page=page_num, quiz_id=selected_quiz, class_filter=selected_class, sort_by=current_sort, per_page=current_per_page) }}" class="btn btn-secondary btn-sm">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            <span style="padding: 8px; color: var(--text-muted);">…</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

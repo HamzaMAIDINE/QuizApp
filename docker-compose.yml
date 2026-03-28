@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist the SQLite database outside the container
+      - ./instance:/app/instance
+      # Optional: Mount the environment file
+      - ./.env:/app/.env
+    restart: unless-stopped

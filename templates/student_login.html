@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Connexion Étudiant{% endblock %}
+
+{% block content %}
+<div style="max-width: 460px; margin: 0 auto; padding: 20px 0;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="font-size: 2.5rem; margin-bottom: 12px;">🎓</div>
+        <h2 style="margin-bottom: 8px;">Connexion Étudiant</h2>
+        <p style="font-size: 0.95rem;">Entrez vos informations pour accéder au quiz.</p>
+    </div>
+
+    <form action="{{ url_for('main.join') }}" method="POST" style="background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 32px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="form-group">
+            <label>Classe</label>
+            <select name="student_class" required>
+                <option value="" disabled selected>Choisir votre classe</option>
+                <option value="TCLSHF1">TCLSHF1</option>
+                <option value="TCSF1">TCSF1</option>
+                <option value="TCSF2">TCSF2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" name="first_name" required placeholder="Ex: Hassan">
+        </div>
+
+        <div class="form-group">
+            <label>Nom</label>
+            <input type="text" name="last_name" required placeholder="Ex: Elazizi">
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block" style="margin-top: 8px;">
+            Commencer le Quiz →
+        </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 24px;">
+        <a href="{{ url_for('main.landing') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: var(--transition-base);"
+           onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+            ← Retour à l'Accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

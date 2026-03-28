@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QuizApp{% endblock %}</title>
+    <meta name="description" content="Plateforme de quiz interactive pour enseignants et étudiants">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Animated floating circles background -->
+    <div id="particles-bg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;"></div>
+
+    <!-- Cursor glow: multi-layer spotlight -->
+    <div id="cursor-glow" style="
+        position: fixed; width: 600px; height: 600px; border-radius: 50%;
+        background: radial-gradient(circle,
+            rgba(124,58,237,0.35) 0%,
+            rgba(99,102,241,0.2) 15%,
+            rgba(59,130,246,0.12) 35%,
+            rgba(16,185,129,0.04) 55%,
+            transparent 70%);
+        pointer-events: none; z-index: 1; transform: translate(-50%,-50%);
+        opacity: 0; mix-blend-mode: screen;
+        filter: blur(1px);
+    "></div>
+    <!-- Inner bright core -->
+    <div id="cursor-core" style="
+        position: fixed; width: 200px; height: 200px; border-radius: 50%;
+        background: radial-gradient(circle,
+            rgba(167,139,250,0.45) 0%,
+            rgba(124,58,237,0.25) 30%,
+            transparent 70%);
+        pointer-events: none; z-index: 1; transform: translate(-50%,-50%);
+        opacity: 0; mix-blend-mode: screen;
+    "></div>
+    <!-- Orbit ring -->
+    <div id="cursor-ring" style="
+        position: fixed; width: 80px; height: 80px; border-radius: 50%;
+        border: 1.5px solid rgba(139,92,246,0.3);
+        pointer-events: none; z-index: 2; transform: translate(-50%,-50%);
+        opacity: 0;
+        transition: width 0.3s ease, height 0.3s ease, opacity 0.2s ease;
+    "></div>
+    <!-- Trail particles container -->
+    <div id="cursor-trail" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;"></div>
+
+    <header>
+        <a href="{{ url_for('main.landing') }}" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#7c3aed"/>
+                        <stop offset="100%" stop-color="#3b82f6"/>
+                    </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#logoGrad)" opacity="0.15"/>
+                <rect x="2" y="2" width="36" height="36" rx="10" stroke="url(#logoGrad)" stroke-width="2" fill="none"/>
+                <path d="M12 14h16M12 20h12M12 26h8" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="30" cy="28" r="5" fill="url(#logoGrad)" opacity="0.9"/>
+                <path d="M28.5 28l1 1 2.5-2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 style="margin:0;">QuizApp</h1>
+        </a>
+        <nav>
+            <a href="{{ url_for('main.landing') }}">Accueil</a>
+            {% if session.get('logged_in') %}
+            <a href="{{ url_for('main.dashboard') }}">Tableau de Bord</a>
+            <a href="{{ url_for('main.view_results') }}">Résultats</a>
+            <a href="{{ url_for('main.profile') }}">Compte</a>
+            <a href="{{ url_for('main.logout') }}" style="color: var(--danger-color);">Déconnexion</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Background animations script -->
+    <script>
+    (function() {
+        // === Floating Circles ===
+        const container = document.getElementById('particles-bg');
+        const circleCount = 18;
+        const colors = [
+            'rgba(124, 58, 237, 0.07)',
+            'rgba(59, 130, 246, 0.06)',
+            'rgba(99, 102, 241, 0.05)',
+            'rgba(16, 185, 129, 0.04)',
+            'rgba(139, 92, 246, 0.06)',
+        ];
+
+        for (let i = 0; i < circleCount; i++) {
+            const circle = document.createElement('div');
+            const size = Math.random() * 120 + 30;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const startX = Math.random() * 100;
+            const startY = Math.random() * 100;
+            const duration = Math.random() * 25 + 15;
+            const delay = Math.random() * -20;
+
+            circle.style.cssText = `
+                position: absolute;
+                width: ${size}px; height: ${size}px;
+                border-radius: 50%;
+                background: ${color};
+                left: ${startX}%;
+                top: ${startY}%;
+                animation: floatCircle${i % 4} ${duration}s ease-in-out ${delay}s infinite;
+                filter: blur(${size > 80 ? 2 : 0}px);
+            `;
+            container.appendChild(circle);
+        }
+
+        // Inject animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes floatCircle0 {
+                0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+                25% { transform: translate(80px, -60px) scale(1.1); opacity: 1; }
+                50% { transform: translate(-40px, -120px) scale(0.9); opacity: 0.5; }
+                75% { transform: translate(60px, -30px) scale(1.05); opacity: 0.8; }
+            }
+            @keyframes floatCircle1 {
+                0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+                25% { transform: translate(-60px, 80px) scale(0.95); opacity: 0.9; }
+                50% { transform: translate(100px, 40px) scale(1.1); opacity: 0.4; }
+                75% { transform: translate(-30px, 100px) scale(1); opacity: 0.7; }
+            }
+            @keyframes floatCircle2 {
+                0%, 100% { transform: translate(0, 0) scale(0.95); opacity: 0.5; }
+                33% { transform: translate(70px, 70px) scale(1.1); opacity: 0.8; }
+                66% { transform: translate(-50px, 30px) scale(0.9); opacity: 0.6; }
+            }
+            @keyframes floatCircle3 {
+                0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+                20% { transform: translate(-90px, -40px) scale(1.05); opacity: 0.5; }
+                40% { transform: translate(50px, -80px) scale(0.9); opacity: 0.9; }
+                60% { transform: translate(-20px, 60px) scale(1.1); opacity: 0.4; }
+                80% { transform: translate(80px, 20px) scale(0.95); opacity: 0.7; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // === Cursor Spotlight (multi-layer) ===
+        const glow = document.getElementById('cursor-glow');
+        const core = document.getElementById('cursor-core');
+        const ring = document.getElementById('cursor-ring');
+        const trail = document.getElementById('cursor-trail');
+        let mouseX = 0, mouseY = 0;
+        let glowX = 0, glowY = 0;
+        let coreX = 0, coreY = 0;
+        let ringX = 0, ringY = 0;
+        let lastTrailTime = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            glow.style.opacity = '1';
+            core.style.opacity = '1';
+            ring.style.opacity = '1';
+
+            // Spawn trail particle (throttled to every 40ms)
+            const now = Date.now();
+            if (now - lastTrailTime > 40) {
+                lastTrailTime = now;
+                spawnTrailDot(e.clientX, e.clientY);
+            }
+        });
+
+        document.addEventListener('mouseleave', () => {
+            glow.style.opacity = '0';
+            core.style.opacity = '0';
+            ring.style.opacity = '0';
+        });
+
+        // Hover over interactive elements: expand ring
+        document.addEventListener('mouseover', (e) => {
+            const tag = e.target.closest('a, button, [onclick], input, select, label');
+            if (tag) {
+                ring.style.width = '50px';
+                ring.style.height = '50px';
+                ring.style.borderColor = 'rgba(167, 139, 250, 0.6)';
+            }
+        });
+        document.addEventListener('mouseout', (e) => {
+            const tag = e.target.closest('a, button, [onclick], input, select, label');
+            if (tag) {
+                ring.style.width = '80px';
+                ring.style.height = '80px';
+                ring.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+            }
+        });
+
+        function spawnTrailDot(x, y) {
+            const dot = document.createElement('div');
+            const size = Math.random() * 6 + 3;
+            dot.style.cssText = `
+                position: fixed; left: ${x}px; top: ${y}px;
+                width: ${size}px; height: ${size}px; border-radius: 50%;
+                background: radial-gradient(circle, rgba(167,139,250,0.6), rgba(99,102,241,0.3));
+                pointer-events: none; transform: translate(-50%,-50%);
+                z-index: 1;
+                transition: all 0.6s ease-out;
+            `;
+            trail.appendChild(dot);
+            // Force reflow then animate out
+            requestAnimationFrame(() => {
+                dot.style.opacity = '0';
+                dot.style.transform = `translate(-50%,-50%) scale(0.2) translateY(${(Math.random()-0.5)*20}px)`;
+            });
+            setTimeout(() => dot.remove(), 600);
+        }
+
+        // Smooth follow — different easing for each layer
+        function animateGlow() {
+            glowX += (mouseX - glowX) * 0.08;
+            glowY += (mouseY - glowY) * 0.08;
+            coreX += (mouseX - coreX) * 0.15;
+            coreY += (mouseY - coreY) * 0.15;
+            ringX += (mouseX - ringX) * 0.2;
+            ringY += (mouseY - ringY) * 0.2;
+
+            glow.style.left = glowX + 'px';
+            glow.style.top = glowY + 'px';
+            core.style.left = coreX + 'px';
+            core.style.top = coreY + 'px';
+            ring.style.left = ringX + 'px';
+            ring.style.top = ringY + 'px';
+
+            requestAnimationFrame(animateGlow);
+        }
+        animateGlow();
+    })();
+    </script>
+
+    <!-- Modal Float Engine -->
+    <script>
+    var modalFloatEngine = (function() {
+        var activeContent = null;
+        var activeOverlay = null;
+        var currentY = 0;
+        var targetY = 0;
+        var rafId = null;
+
+        function lerp(start, end, factor) {
+            return start + (end - start) * factor;
+        }
+
+        function updatePosition() {
+            if (!activeContent) return;
+            
+            var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            var viewportHeight = window.innerHeight;
+            var modalHeight = activeContent.offsetHeight;
+            
+            // Get the distance of the activeContent's offsetParent from the top of the document.
+            // This corrects the math if the modal is inside a relatively positioned <main> with margin.
+            var parent = activeContent.offsetParent || document.body;
+            var parentRect = parent.getBoundingClientRect();
+            var parentTopToDoc = scrollY + parentRect.top;
+            
+            // Exact mathematical center of the viewport relative to the document
+            var idealDocumentY = scrollY + ((viewportHeight - modalHeight) / 2);
+            
+            // Target Y in the coordinate space of the offsetParent
+            targetY = Math.max(0, idealDocumentY - parentTopToDoc);
+
+            // Interpolate current position towards target
+            currentY = lerp(currentY, targetY, 0.1); 
+
+            // Apply position
+            activeContent.style.top = currentY + 'px';
+
+            // Continue animation if still open
+            rafId = requestAnimationFrame(updatePosition);
+        }
+
+        function open(overlayEl) {
+            if (!overlayEl) return;
+            var content = overlayEl.querySelector('.modal-content');
+            if (!content) return;
+
+            activeOverlay = overlayEl;
+            activeContent = content;
+
+            // Change overlay and content display
+            overlayEl.style.display = 'block';
+
+            // Start modal at the current view center to avoid flying in from the very top
+            var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            var viewportHeight = window.innerHeight;
+            void content.offsetHeight; // force reflow
+            
+            var parent = content.offsetParent || document.body;
+            var parentRect = parent.getBoundingClientRect();
+            var parentTopToDoc = scrollY + parentRect.top;
+            
+            // Exact mathematical center
+            var idealDocumentY = scrollY + ((viewportHeight - content.offsetHeight) / 2);
+            currentY = Math.max(0, idealDocumentY - parentTopToDoc);
+            
+            content.style.top = currentY + 'px';
+
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(updatePosition);
+        }
+
+        function close(overlayEl) {
+            if (!overlayEl) return;
+            overlayEl.style.display = 'none';
+            activeOverlay = null;
+            activeContent = null;
+            if (rafId) cancelAnimationFrame(rafId);
+        }
+
+        return { open: open, close: close };
+    })();
+    </script>
+
+    {% if session.get('logged_in') %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script>
+        var socket = io();
+        socket.on('new_submission', function(data) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 24px; right: 24px;
+                background: linear-gradient(135deg, #7c3aed, #3b82f6);
+                color: white; padding: 16px 24px; border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+                z-index: 9999; font-family: 'Inter', sans-serif;
+                animation: scaleIn 0.3s ease-out;
+                max-width: 360px; font-size: 0.9rem;
+            `;
+            toast.innerHTML = `<strong style="display:block; margin-bottom:4px;">✦ Nouvelle Soumission</strong>${data.first_name} ${data.last_name} — ${data.quiz_title} (${data.score}/${data.total})`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.4s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        });
+    </script>
+    {% endif %}
+</body>
+
+</html>

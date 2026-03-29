@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}QuizApp — Gestion des Classes{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+    <h2 style="margin-bottom: 0;">Gestion des Classes</h2>
+</div>
+
+<p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 0.95rem;">
+    Ajoutez ou supprimez les classes disponibles pour vos élèves.
+</p>
+
+<!-- Add Class Form -->
+<form action="{{ url_for('main.add_class') }}" method="POST"
+    style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div style="flex: 1; min-width: 200px;">
+        <label style="margin-bottom: 6px;">Nom de la classe</label>
+        <input type="text" name="class_name" required placeholder="Ex: TCSF1, 2BAC-SVT, 1APIC..."
+            style="text-transform: uppercase;">
+    </div>
+    <button type="submit" class="btn btn-success" style="white-space: nowrap; height: fit-content;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Ajouter
+    </button>
+</form>
+
+<!-- Classes List -->
+<div class="quiz-list" style="margin-bottom: 40px;">
+    {% for cls in classes %}
+    <div class="quiz-item" style="animation: slideUp {{ 0.1 + loop.index0 * 0.05 }}s ease-out both;">
+        <div style="flex: 1; display: flex; align-items: center; gap: 14px;">
+            <div style="
+                width: 42px; height: 42px; border-radius: var(--radius-md);
+                background: var(--accent-gradient); display: flex;
+                align-items: center; justify-content: center;
+                font-weight: 700; font-size: 0.85rem; color: white;
+                flex-shrink: 0; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+            ">
+                {{ cls.name[:2] }}
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.05rem;">{{ cls.name }}</h3>
+                <p style="color: var(--text-muted); margin-top: 3px; font-size: 0.82rem;">
+                    Ajoutée le {{ cls.created_at.strftime('%d/%m/%Y') if cls.created_at else '—' }}
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm"
+                onclick="openDeleteClassModal('{{ cls.id }}', '{{ cls.name }}')"
+                style="background: var(--danger-bg); color: var(--danger-color); border-color: rgba(239,68,68,0.2);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Supprimer
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; background: var(--glass-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg);">
+        <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;">🏫</div>
+        <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 6px;">Aucune classe configurée.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Utilisez le formulaire ci-dessus pour ajouter votre première classe.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Stats summary -->
+{% if classes %}
+<div style="
+    display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+">
+    <div style="
+        flex: 1; min-width: 180px;
+        background: var(--glass-bg); border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg); padding: 20px 24px;
+        display: flex; align-items: center; gap: 16px;
+    ">
+        <div style="
+            width: 48px; height: 48px; border-radius: var(--radius-md);
+            background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(59,130,246,0.2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        ">🏫</div>
+        <div>
+            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-bright);">{{ classes|length }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Classe{{ 's' if classes|length > 1 else '' }} configurée{{ 's' if classes|length > 1 else '' }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteClassModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>⚠️ Supprimer la classe</h3>
+        <p style="margin-top: 8px;">
+            Êtes-vous sûr de vouloir supprimer la classe <strong id="deleteClassName"></strong> ?
+        </p>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">
+            Les résultats existants des élèves de cette classe ne seront pas affectés.
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;">
+            <button onclick="closeDeleteClassModal()" class="btn btn-secondary">Annuler</button>
+            <form id="deleteClassForm" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn" style="background: var(--danger-color); box-shadow: 0 4px 15px rgba(239,68,68,0.3);">
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteClassModal(classId, className) {
+        document.getElementById('deleteClassForm').action = "/teacher/classes/delete/" + classId;
+        document.getElementById('deleteClassName').textContent = className;
+        modalFloatEngine.open(document.getElementById('deleteClassModal'));
+    }
+
+    function closeDeleteClassModal() {
+        modalFloatEngine.close(document.getElementById('deleteClassModal'));
+    }
+
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('deleteClassModal');
+        if (event.target === modal) closeDeleteClassModal();
+    });
+</script>
+{% endblock %}

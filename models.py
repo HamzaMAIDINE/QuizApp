@@ -38,3 +38,8 @@ class Teacher(db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     recovery_code_hash = db.Column(db.String(200), nullable=False)
+
+class SchoolClass(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())

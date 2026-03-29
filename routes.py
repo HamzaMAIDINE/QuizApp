@@ -7,7 +7,7 @@ from functools import wraps
 import json
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, session, Response
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import db, Quiz, Question, Option, StudentResult, Teacher
+from models import db, Quiz, Question, Option, StudentResult, Teacher, SchoolClass
 from extensions import limiter, socketio
 
 main_bp = Blueprint('main', __name__)
@@ -440,10 +440,47 @@ def regenerate_recovery():
     flash('Nouveau code de récupération généré.')
     return render_template('teacher_profile.html', teacher=teacher, new_recovery_code=new_code)
 
+# --- Class Management Routes ---
+@main_bp.route('/teacher/classes')
+@login_required
+def manage_classes():
+    classes = SchoolClass.query.order_by(SchoolClass.name).all()
+    return render_template('manage_classes.html', classes=classes)
+
+@main_bp.route('/teacher/classes/add', methods=['POST'])
+@login_required
+def add_class():
+    name = request.form.get('class_name', '').strip().upper()
+    if not name:
+        flash('Le nom de la classe ne peut pas être vide.')
+        return redirect(url_for('main.manage_classes'))
+    
+    existing = SchoolClass.query.filter_by(name=name).first()
+    if existing:
+        flash('Cette classe existe déjà.')
+        return redirect(url_for('main.manage_classes'))
+    
+    new_class = SchoolClass(name=name)
+    db.session.add(new_class)
+    db.session.commit()
+    flash(f'Classe "{name}" ajoutée avec succès.')
+    return redirect(url_for('main.manage_classes'))
+
+@main_bp.route('/teacher/classes/delete/<int:class_id>', methods=['POST'])
+@login_required
+def delete_class(class_id):
+    school_class = SchoolClass.query.get_or_404(class_id)
+    name = school_class.name
+    db.session.delete(school_class)
+    db.session.commit()
+    flash(f'Classe "{name}" supprimée.')
+    return redirect(url_for('main.manage_classes'))
+
 # --- Student Routes ---
 @main_bp.route('/student')
 def student_login():
-    return render_template('student_login.html')
+    classes = SchoolClass.query.order_by(SchoolClass.name).all()
+    return render_template('student_login.html', classes=classes)
 
 @main_bp.route('/join', methods=['POST'])
 def join():

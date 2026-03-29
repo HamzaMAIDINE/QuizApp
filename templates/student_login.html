@@ -17,9 +17,11 @@
             <label>Classe</label>
             <select name="student_class" required>
                 <option value="" disabled selected>Choisir votre classe</option>
-                <option value="TCLSHF1">TCLSHF1</option>
-                <option value="TCSF1">TCSF1</option>
-                <option value="TCSF2">TCSF2</option>
+                {% for cls in classes %}
+                <option value="{{ cls.name }}">{{ cls.name }}</option>
+                {% else %}
+                <option value="" disabled>Aucune classe disponible</option>
+                {% endfor %}
             </select>
         </div>
 

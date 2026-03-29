@@ -72,6 +72,7 @@
             <a href="{{ url_for('main.landing') }}">Accueil</a>
             {% if session.get('logged_in') %}
             <a href="{{ url_for('main.dashboard') }}">Tableau de Bord</a>
+            <a href="{{ url_for('main.manage_classes') }}">Classes</a>
             <a href="{{ url_for('main.view_results') }}">Résultats</a>
             <a href="{{ url_for('main.profile') }}">Compte</a>
             <a href="{{ url_for('main.logout') }}" style="color: var(--danger-color);">Déconnexion</a>

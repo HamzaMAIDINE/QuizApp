@@ -24,15 +24,10 @@ def login_required(f):
 def check_setup():
     if request.endpoint and 'static' not in request.endpoint:
         teacher = Teacher.query.first()
-<<<<<<< HEAD
         # If no teacher exists and we are not on the setup page, redirect to setup
         if not teacher and request.endpoint != 'main.setup':
             return redirect(url_for('main.setup'))
         # If teacher exists and we try to access setup, redirect to login
-=======
-        if not teacher and request.endpoint != 'main.setup':
-            return redirect(url_for('main.setup'))
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         if teacher and request.endpoint == 'main.setup':
              return redirect(url_for('main.teacher_login'))
 
@@ -71,11 +66,7 @@ def setup():
         
     return render_template('setup.html')
 
-<<<<<<< HEAD
 # --- Teacher Routes ---
-=======
-#Teacher Routes
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
 @main_bp.route('/teacher/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def teacher_login():
@@ -96,11 +87,7 @@ def reset_password():
         recovery_code = request.form.get('recovery_code')
         new_password = request.form.get('new_password')
         
-<<<<<<< HEAD
         teacher = Teacher.query.first() # Assume single teacher
-=======
-        teacher = Teacher.query.first()
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         
         if teacher and check_password_hash(teacher.recovery_code_hash, recovery_code):
             teacher.password_hash = generate_password_hash(new_password)
@@ -142,10 +129,7 @@ def logout():
 def dashboard():
     from sqlalchemy import or_
     page = request.args.get('page', 1, type=int)
-<<<<<<< HEAD
     # Get all non-archived quizzes with pagination
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     quizzes = Quiz.query.filter(or_(Quiz.is_archived == False, Quiz.is_archived == None)).order_by(Quiz.id.desc()).paginate(page=page, per_page=10)
     return render_template('teacher_dashboard.html', quizzes=quizzes)
 
@@ -235,11 +219,8 @@ def add_question(quiz_id):
              return redirect(url_for('main.dashboard'))
              
         text = request.form.get('text')
-<<<<<<< HEAD
         # Dynamic options processing
         # We expect inputs named 'options[]' and 'correct_answer_index'
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         option_texts = request.form.getlist('options[]')
         correct_index = request.form.get('correct_answer_index')
         
@@ -251,11 +232,7 @@ def add_question(quiz_id):
                 else:
                     q = Question(quiz_id=quiz.id, text=text)
                     db.session.add(q)
-<<<<<<< HEAD
                     db.session.flush() # Generate ID
-=======
-                    db.session.flush()
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
                     
                     for i, opt_text in enumerate(option_texts):
                         is_correct = (i == correct_idx)
@@ -308,11 +285,8 @@ def edit_question(question_id):
     if request.method == 'POST':
         q.text = request.form.get('text')
         
-<<<<<<< HEAD
         # We need to replace options. 
         # Simples way: delete old options and create new ones
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         option_texts = request.form.getlist('options[]')
         correct_index = request.form.get('correct_answer_index')
         
@@ -341,16 +315,10 @@ def edit_question(question_id):
 def view_results():
     quiz_filter = request.args.get('quiz_id')
     class_filter = request.args.get('class_filter')
-<<<<<<< HEAD
     sort_by = request.args.get('sort_by', 'date') # default sort by date
     
     quizzes = Quiz.query.all()
     # Get unique classes for filter dropdown
-=======
-    sort_by = request.args.get('sort_by', 'date') 
-    
-    quizzes = Quiz.query.all()
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     classes = db.session.query(StudentResult.student_class).distinct().all()
     classes = [c[0] for c in classes if c[0]]
     
@@ -373,21 +341,14 @@ def view_results():
     if class_filter and class_filter != 'all':
         query = query.filter(StudentResult.student_class == class_filter)
         
-<<<<<<< HEAD
     # Sorting
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     if sort_by == 'name':
         query = query.order_by(StudentResult.last_name, StudentResult.first_name)
     elif sort_by == 'score':
         query = query.order_by(StudentResult.score.desc())
     elif sort_by == 'class':
         query = query.order_by(StudentResult.student_class)
-<<<<<<< HEAD
     else: # date
-=======
-    else: 
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         query = query.order_by(StudentResult.date_taken.desc())
         
     page = request.args.get('page', 1, type=int)
@@ -479,11 +440,7 @@ def regenerate_recovery():
     flash('Nouveau code de récupération généré.')
     return render_template('teacher_profile.html', teacher=teacher, new_recovery_code=new_code)
 
-<<<<<<< HEAD
 # --- Student Routes ---
-=======
-#Student Routes
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
 @main_bp.route('/student')
 def student_login():
     return render_template('student_login.html')
@@ -494,16 +451,12 @@ def join():
     last_name = request.form.get('last_name', '').strip()
     student_class = request.form.get('student_class')
     
-<<<<<<< HEAD
     from sqlalchemy import or_
     active_quiz = Quiz.query.filter(
         Quiz.is_active == True,
         or_(Quiz.is_archived == False, Quiz.is_archived == None)
     ).first()
     
-=======
-    active_quiz = Quiz.query.filter_by(is_active=True, is_archived=False).first()
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     if not active_quiz:
         return render_template('no_active_quiz.html')
         
@@ -518,35 +471,23 @@ def join():
         flash('Vous avez déjà passé ce quiz.')
         return redirect(url_for('main.student_login'))
     
-<<<<<<< HEAD
     # Record start time in session
     session[f'quiz_start_time_{active_quiz.id}'] = datetime.now().timestamp()
     
     # Prepare Randomized Questions
-=======
-    session[f'quiz_start_time_{active_quiz.id}'] = datetime.now().timestamp()
-    
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     questions_list = list(active_quiz.questions)
     random.shuffle(questions_list)
     
     prepared_questions = []
     for q in questions_list:
-<<<<<<< HEAD
         # Load options for this question
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         opts = list(q.options)
         random.shuffle(opts)
         
         prepared_questions.append({
             'id': q.id,
             'text': q.text,
-<<<<<<< HEAD
             'options': opts # Pass Option objects directly
-=======
-            'options': opts
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         })
     
     return render_template('take_quiz.html', 
@@ -556,10 +497,7 @@ def join():
 
 @main_bp.route('/submit_quiz/<int:quiz_id>', methods=['POST'])
 def submit_quiz(quiz_id):
-<<<<<<< HEAD
     print("DEBUG FORM DATA:", request.form) # Debugging line
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     quiz = Quiz.query.get_or_404(quiz_id)
     first_name = request.form.get('student_first', '').strip()
     last_name = request.form.get('student_last', '').strip()
@@ -580,10 +518,7 @@ def submit_quiz(quiz_id):
     if quiz_start_time:
         current_time = datetime.now().timestamp()
         time_limit_seconds = quiz.time_limit_minutes * 60
-<<<<<<< HEAD
         # Add 10 seconds grace period
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         if current_time > quiz_start_time + time_limit_seconds + 10:
             flash("Le temps imparti pour le quiz est écoulé. Votre soumission n'a pas été acceptée.")
             return redirect(url_for('main.student_login'))
@@ -592,19 +527,13 @@ def submit_quiz(quiz_id):
     questions = quiz.questions
     for q in questions:
         selected_option_id = request.form.get(f'q_{q.id}')
-<<<<<<< HEAD
         # Find if this option is correct
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
         if selected_option_id:
             opt = Option.query.get(selected_option_id)
             if opt and opt.is_correct and opt.question_id == q.id:
                 score += 1
             
-<<<<<<< HEAD
     # Save result
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
     result = StudentResult(
         quiz_id=quiz.id, 
         first_name=first_name, 

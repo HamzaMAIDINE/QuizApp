@@ -4,7 +4,7 @@ echo "==================================="
 
 if [ -f "venv/Scripts/activate" ]; then
     source venv/Scripts/activate
-    python app.py
+    python3 app.py
 elif [ -f "venv/bin/activate" ]; then
     source venv/bin/activate
     python3 app.py

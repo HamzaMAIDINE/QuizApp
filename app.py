@@ -32,17 +32,10 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-<<<<<<< HEAD
-        # Teacher creation now handled via /setup route to avoid hardcoded credentials
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
 
     return app
 
 if __name__ == '__main__':
     app = create_app()
-<<<<<<< HEAD
-    # Host 0.0.0.0 is needed for other students to connect
-=======
->>>>>>> 46965f12b4bc42f7506a333bb8d53464f5e00fb2
+
     socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)

@@ -385,11 +385,12 @@ def download_results(quiz_id):
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Prénom', 'Nom', 'Classe', 'Score', 'Total', 'Date'])
+    writer.writerow(['Prénom', 'Nom', 'Classe', 'Note /20', 'Score Brut', 'Total Questions', 'Date'])
     for r in results:
+        score_on_20 = round((r.score / r.total_questions) * 20, 1) if r.total_questions > 0 else 0
         writer.writerow([
             r.first_name, r.last_name, r.student_class,
-            r.score, r.total_questions,
+            score_on_20, r.score, r.total_questions,
             r.date_taken.strftime('%d/%m/%Y %H:%M') if r.date_taken else ''
         ])
 
@@ -582,13 +583,16 @@ def submit_quiz(quiz_id):
     db.session.add(result)
     db.session.commit()
     
+    total = len(questions)
+    score_on_20 = round((score / total) * 20, 1) if total > 0 else 0
+    
     socketio.emit('new_submission', {
         'first_name': first_name,
         'last_name': last_name,
         'quiz_id': quiz.id,
         'quiz_title': quiz.title,
-        'score': score,
-        'total': len(questions)
+        'score': score_on_20,
+        'total': 20
     })
         
-    return render_template('results.html', score=score, total=len(questions), student_name=f"{first_name} {last_name}")
+    return render_template('results.html', score=score, total=total, score_on_20=score_on_20, student_name=f"{first_name} {last_name}")

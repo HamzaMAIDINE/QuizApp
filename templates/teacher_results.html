@@ -68,13 +68,15 @@
         <tbody>
             {% for result in results.items %}
             {% set percentage = (result.score / result.total_questions) * 100 if result.total_questions > 0 else 0 %}
+            {% set score_on_20 = ((result.score / result.total_questions) * 20) | round(1) if result.total_questions > 0 else 0 %}
             {% set is_passed = percentage >= 50 %}
             <tr>
                 <td style="color: var(--text-primary); font-weight: 500;">{{ result.first_name }} {{ result.last_name }}</td>
                 <td>{{ result.student_class }}</td>
                 <td>{{ result.title }}</td>
                 <td style="font-weight: 700; color: {{ 'var(--success-color)' if is_passed else 'var(--danger-color)' }};">
-                    {{ result.score }} / {{ result.total_questions }}
+                    {{ score_on_20 }} / 20
+                    <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted); display: block;">({{ result.score }}/{{ result.total_questions }})</span>
                 </td>
                 <td>
                     {% if is_passed %}

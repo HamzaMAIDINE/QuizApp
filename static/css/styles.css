@@ -887,3 +887,57 @@ tbody tr:hover {
     background: rgba(124, 58, 237, 0.3);
     color: var(--text-bright);
 }
+
+/* ---------- Code Blocks (Pseudocode) ---------- */
+pre,
+.ql-editor pre.ql-syntax,
+.question-block pre,
+.question-item pre {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    border-left: 3px solid var(--accent-purple);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: #e2e8f0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    tab-size: 4;
+    position: relative;
+}
+
+/* Code block label */
+.question-block pre::before,
+.question-item pre::before,
+pre.pseudocode::before {
+    content: '📋 Pseudocode';
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-purple);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+/* Quill editor code block appearance */
+.ql-editor pre.ql-syntax {
+    background: rgba(0, 0, 0, 0.4) !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(124, 58, 237, 0.25) !important;
+    border-left: 3px solid var(--accent-purple) !important;
+    border-radius: var(--radius-md) !important;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace !important;
+}
+
+/* Quill toolbar code-block button highlight */
+.ql-toolbar .ql-code-block.ql-active .ql-stroke {
+    stroke: var(--accent-purple) !important;
+}

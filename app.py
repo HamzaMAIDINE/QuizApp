@@ -32,7 +32,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        # Teacher creation now handled via /setup route to avoid hardcoded credentials
 
     return app
 

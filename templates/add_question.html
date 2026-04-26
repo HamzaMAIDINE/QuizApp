@@ -165,14 +165,22 @@
 
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
-    // Quill Editors
+    // Quill toolbar config with code-block support
+    var quillToolbar = [
+        ['bold', 'italic', 'underline'],
+        ['code-block'],
+        ['clean']
+    ];
+
     var addQuill = new Quill('#add-editor-container', {
         theme: 'snow',
-        placeholder: 'Ex: Quelle est la capitale de la France ?'
+        placeholder: 'Ex: Quelle est la capitale de la France ?',
+        modules: { toolbar: quillToolbar }
     });
 
     var editQuill = new Quill('#edit-editor-container', {
-        theme: 'snow'
+        theme: 'snow',
+        modules: { toolbar: quillToolbar }
     });
 
     document.getElementById('addForm').onsubmit = function() {

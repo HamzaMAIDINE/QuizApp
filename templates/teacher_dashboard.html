@@ -37,7 +37,7 @@
         <div style="flex: 1;">
             <h3>{{ quiz.title }}</h3>
             <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.9rem;">
-                ⏱ {{ quiz.time_limit_minutes }} min  ·  📝 {{ quiz.questions|length }} questions
+                ⏱ {{ quiz.time_limit_minutes }} min  ·  📝 {{ quiz.questions|length }} questions  ·  👥 {{ quiz.results|length }} soumissions
             </p>
             {% if quiz.is_active %}
             <span class="badge badge-active" style="margin-top: 8px; display: inline-flex;">● ACTIF</span>

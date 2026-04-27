@@ -17,5 +17,5 @@ EXPOSE 5000
 # Optional: Set default environment variables
 ENV FLASK_APP=app.py
 
-# Run the app 
-CMD ["python", "app.py"]
+# Run in production with gunicorn + eventlet for SocketIO support
+CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "app:create_app()"]

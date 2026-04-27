@@ -82,11 +82,24 @@
     <main>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <ul class="flashes">
+        <ul class="flashes" id="flashMessages">
             {% for message in messages %}
             <li>{{ message }}</li>
             {% endfor %}
         </ul>
+        <script>
+            setTimeout(function() {
+                var el = document.getElementById('flashMessages');
+                if (el) {
+                    el.style.transition = 'opacity 0.5s ease, max-height 0.5s ease, margin 0.5s ease, padding 0.5s ease';
+                    el.style.opacity = '0';
+                    el.style.maxHeight = '0';
+                    el.style.overflow = 'hidden';
+                    el.style.marginBottom = '0';
+                    setTimeout(function() { el.remove(); }, 500);
+                }
+            }, 5000);
+        </script>
         {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}

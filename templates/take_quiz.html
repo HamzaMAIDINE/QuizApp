@@ -71,7 +71,11 @@
         return "Êtes-vous sûr de vouloir quitter ? Votre progression sera perdue.";
     };
 
-    form.onsubmit = function () {
+    form.onsubmit = function (e) {
+        if (!confirm("Êtes-vous sûr de vouloir soumettre vos réponses ? Cette action est irréversible.")) {
+            e.preventDefault();
+            return false;
+        }
         window.onbeforeunload = null;
     };
 

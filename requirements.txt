@@ -5,3 +5,6 @@ Flask-WTF
 Flask-Limiter
 Flask-Migrate
 Flask-SocketIO
+Werkzeug
+gunicorn
+eventlet

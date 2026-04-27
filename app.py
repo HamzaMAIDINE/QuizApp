@@ -1,7 +1,5 @@
 import os
 from flask import Flask, render_template
-import secrets
-from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 from flask_migrate import Migrate
 

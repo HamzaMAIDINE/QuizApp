@@ -1,11 +1,13 @@
 import secrets
 import csv
+import io
 import os
 import random
 from datetime import datetime
 from functools import wraps
 import json
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, session, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
+from sqlalchemy import or_
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import db, Quiz, Question, Option, StudentResult, Teacher, SchoolClass
 from extensions import limiter, socketio
@@ -127,7 +129,6 @@ def logout():
 @main_bp.route('/teacher/dashboard')
 @login_required
 def dashboard():
-    from sqlalchemy import or_
     page = request.args.get('page', 1, type=int)
     # Get all non-archived quizzes with pagination
     quizzes = Quiz.query.filter(or_(Quiz.is_archived == False, Quiz.is_archived == None)).order_by(Quiz.id.desc()).paginate(page=page, per_page=10)
@@ -323,6 +324,7 @@ def view_results():
     classes = [c[0] for c in classes if c[0]]
     
     query = StudentResult.query.join(Quiz).add_columns(
+        StudentResult.id.label('result_id'),
         StudentResult.first_name, 
         StudentResult.last_name,
         StudentResult.student_class,
@@ -345,7 +347,7 @@ def view_results():
     if sort_by == 'name':
         query = query.order_by(StudentResult.last_name, StudentResult.first_name)
     elif sort_by == 'score':
-        query = query.order_by(StudentResult.score.desc())
+        query = query.order_by((StudentResult.score * 1.0 / StudentResult.total_questions).desc())
     elif sort_by == 'class':
         query = query.order_by(StudentResult.student_class)
     else: # date
@@ -379,11 +381,11 @@ def toggle_active(quiz_id):
 @main_bp.route('/download_results/<int:quiz_id>')
 @login_required
 def download_results(quiz_id):
-    import io
     quiz = Quiz.query.get_or_404(quiz_id)
     results = StudentResult.query.filter_by(quiz_id=quiz_id).all()
 
     output = io.StringIO()
+    output.write('\ufeff')  # UTF-8 BOM for Excel compatibility
     writer = csv.writer(output)
     writer.writerow(['Prénom', 'Nom', 'Classe', 'Note /20', 'Score Brut', 'Total Questions', 'Date'])
     for r in results:
@@ -397,7 +399,7 @@ def download_results(quiz_id):
     output.seek(0)
     return Response(
         output.getvalue(),
-        mimetype='text/csv',
+        mimetype='text/csv; charset=utf-8',
         headers={'Content-Disposition': f'attachment; filename=results_{quiz.title}.csv'}
     )
 
@@ -489,7 +491,10 @@ def join():
     last_name = request.form.get('last_name', '').strip()
     student_class = request.form.get('student_class')
     
-    from sqlalchemy import or_
+    if not first_name or not last_name or not student_class:
+        flash('Veuillez remplir tous les champs.')
+        return redirect(url_for('main.student_login'))
+    
     active_quiz = Quiz.query.filter(
         Quiz.is_active == True,
         or_(Quiz.is_archived == False, Quiz.is_archived == None)
@@ -535,7 +540,6 @@ def join():
 
 @main_bp.route('/submit_quiz/<int:quiz_id>', methods=['POST'])
 def submit_quiz(quiz_id):
-    print("DEBUG FORM DATA:", request.form) # Debugging line
     quiz = Quiz.query.get_or_404(quiz_id)
     first_name = request.form.get('student_first', '').strip()
     last_name = request.form.get('student_last', '').strip()
@@ -596,3 +600,16 @@ def submit_quiz(quiz_id):
     })
         
     return render_template('results.html', score=score, total=total, score_on_20=score_on_20, student_name=f"{first_name} {last_name}")
+
+@main_bp.route('/delete_result/<int:result_id>', methods=['POST'])
+@login_required
+def delete_result(result_id):
+    result = StudentResult.query.get_or_404(result_id)
+    try:
+        db.session.delete(result)
+        db.session.commit()
+        flash('Résultat supprimé avec succès.')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur : {str(e)}')
+    return redirect(url_for('main.view_results'))
